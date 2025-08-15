@@ -1,30 +1,53 @@
 @echo off
-echo 🚀 Deploying Flask App to Railway (BETTER than Vercel!)
-echo ========================================================
+echo ========================================
+echo Railway Deployment Script
+echo ========================================
+
+REM Check if Railway CLI is installed
+railway --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Installing Railway CLI...
+    npm install -g @railway/cli
+    if %errorlevel% neq 0 (
+        echo Failed to install Railway CLI. Please install manually.
+        pause
+        exit /b 1
+    )
+)
+
 echo.
-echo Railway is PERFECT for your Flask app with ML models!
+echo Logging into Railway...
+railway login
+if %errorlevel% neq 0 (
+    echo Failed to login to Railway.
+    pause
+    exit /b 1
+)
+
 echo.
-echo ✅ No file size limits (your 6.7MB models work perfectly)
-echo ✅ Native Flask support (no code changes needed)
-echo ✅ PostgreSQL database included
-echo ✅ Free tier: $5/month credit
+echo Linking project...
+railway link
+if %errorlevel% neq 0 (
+    echo Failed to link project.
+    pause
+    exit /b 1
+)
+
 echo.
-echo 📋 Deployment Steps:
+echo Setting environment variables...
+echo Please set these environment variables in Railway dashboard:
+echo - SECRET_KEY: A secure random string
+echo - RECAPTCHA_SITE_KEY: Your reCAPTCHA key
 echo.
-echo 1. Go to https://railway.app
-echo 2. Sign up with GitHub (free)
-echo 3. Click "New Project"
-echo 4. Select "Deploy from GitHub repo"
-echo 5. Choose your repository
-echo 6. Railway will automatically detect it's a Flask app
-echo 7. Deploy!
+echo Or use these commands:
+echo railway variables set SECRET_KEY="your-secret-key"
+echo railway variables set RECAPTCHA_SITE_KEY="your-recaptcha-key"
+
 echo.
-echo 🌐 Your app will be live in minutes with:
-echo    - Real ML predictions working perfectly
-echo    - All your models intact
-echo    - No compromises or limitations
+echo Deploying to Railway...
+railway up
+
 echo.
-echo 📚 Full guide: README_RAILWAY.md
-echo.
-echo 🎉 Railway is the way to go for Flask apps!
+echo Deployment complete! Check status with: railway status
+echo View logs with: railway logs
 pause

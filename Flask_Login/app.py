@@ -7,10 +7,17 @@ import datetime
 import pandas as pd
 import os
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['RECAPTCHA_S8ITE_KEY'] = '6LcYcEohAAAAANVL5nwJ25oOM488BPaC9bujC-94'
-app.secret_key = '6LcYcEohAAAAAJ5JeDLnVKReHLj0ZIkeo7FgilZB'
+
+# Use environment variables for sensitive configuration
+app.config['RECAPTCHA_SITE_KEY'] = os.environ.get('RECAPTCHA_SITE_KEY', '6LcYcEohAAAAANVL5nwJ25oOM488BPaC9bujC-94')
+app.secret_key = os.environ.get('SECRET_KEY', '6LcYcEohAAAAAJ5JeDLnVKReHLj0ZIkeo7FgilZB')
 
 # For Railway deployment, use environment variables
 if os.environ.get('DATABASE_URL'):
@@ -18,6 +25,7 @@ if os.environ.get('DATABASE_URL'):
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///login.db'
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 login_manager = flask_login.LoginManager()
@@ -107,19 +115,20 @@ def load_ml_models():
                 column_names = trainingdf.columns.tolist()
                 if "Disease" in column_names:
                     column_names.remove("Disease")  # Remove the "Disease" column
-                print(f"✅ ML models loaded successfully. Found {len(column_names)} symptom columns.")
+                logger.info(f"ML models loaded successfully. Found {len(column_names)} symptom columns.")
             else:
-                print("⚠️ Warning: Testing.csv not found. ML predictions will not work.")
+                logger.warning("Testing.csv not found. ML predictions will not work.")
         else:
-            print("⚠️ Warning: ML model files not found. ML predictions will not work.")
+            logger.warning("ML model files not found. ML predictions will not work.")
             
     except Exception as e:
-        print(f"❌ Error loading ML models: {e}")
-        print("⚠️ ML predictions will not work. Check your model files.")
+        logger.error(f"Error loading ML models: {e}")
+        logger.warning("ML predictions will not work. Check your model files.")
 
 @login_manager.user_loader
 def user_loader(username):
-    if username not in username:
+    # Fixed the critical bug here - was checking if username not in username
+    if username not in [user.usernames for user in LoginScreen.query.all()]:
         return
 
     user = User()
@@ -192,15 +201,11 @@ def home():
             return render_template('homepage.html', error="Please select at least one symptom.")
         
         try:
-            # Construct the correct path for Testing.csv
-            csv_path = os.path.join(os.path.dirname(__file__), "Testing.csv")
-            if not os.path.exists(csv_path):
+            # Use the global column_names that were loaded at startup
+            if not column_names:
                 return render_template('error.html', message="Training data not found. Please contact administrator.")
             
-            trainingdf = pd.read_csv(csv_path)
-            column_names = trainingdf.columns.tolist()
             userSymptoms = pd.DataFrame(0, index=[0], columns=column_names)
-            userSymptoms.drop(columns=["Disease"], inplace=True)
 
             for column in column_names:
                 if column in symptoms:
@@ -226,7 +231,7 @@ def home():
                 return render_template('generic_disease.html', disease_name=predicted_disease)
                 
         except Exception as e:
-            print(f"Error in prediction: {e}")
+            logger.error(f"Error in prediction: {e}")
             return render_template('error.html', message="An error occurred during prediction. Please try again.")
     else:
         return render_template('homepage.html')
