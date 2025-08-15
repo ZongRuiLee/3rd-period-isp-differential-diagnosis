@@ -1,0 +1,16 @@
+{
+  "name": "flask-diagnosis-app",
+  "version": "1.0.0",
+  "description": "Python Flask Application - NOT a Node.js app",
+  "engines": {
+    "node": "none",
+    "python": "3.11.7"
+  },
+  "scripts": {
+    "start": "python index.py"
+  },
+  "keywords": ["python", "flask", "machine-learning"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}

@@ -10,5 +10,9 @@
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "numReplicas": 1
+  },
+  "variables": {
+    "PYTHON_VERSION": "3.11.7",
+    "NODE_VERSION": "none"
   }
 }

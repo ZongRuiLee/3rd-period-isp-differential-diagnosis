@@ -13,4 +13,8 @@ cmds = [
 cmds = ["echo 'Python Flask application build complete'"]
 
 [start]
-cmd = "python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+cmd = "python index.py"
+
+[variables]
+PYTHON_VERSION = "3.11.7"
+NODE_VERSION = "none"
